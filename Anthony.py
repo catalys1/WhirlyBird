@@ -1,11 +1,11 @@
 
 
 
+def convertForces(self, u):
+	F, tau = u
 
-Q = np.matrix([[d*(fl - fr)],
-			   [l1*(fl + fr)*c_phi],
-			   [l1*(fl + fr)*c_theta*s_phi + d*(fr - fl)*s_theta]]);
+	fl = F/2 + tau/(2*d)
+	fr = F/2 - tau/(2*d)
 
-dP_dq = np.([[0],
-			 [(m1*l1-m2*l2)*g*c_theta],
-			 [0]])
+	return [fl, fr]
+
