@@ -27,7 +27,7 @@ F, tau = 0,0
 if not u:
   F = 5.22
 elif len(u) == 1:
-  F, tau = u[0], u[0]
+  F = u[0]
 else:
   F, tau = u[0], u[1]
 u = convertForces([F, tau])
@@ -46,7 +46,7 @@ t = t_start
 while t < t_end:
   plt.ion()
   plt.figure(animator.fig.number)
-  
+  plt.pause(0.001)
   t_temp = t+t_elapse
   while t < t_temp:
     dynamics.propogateDynamics(u)
