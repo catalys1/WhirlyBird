@@ -1,10 +1,16 @@
 import numpy as np
 import params as P
+from WhirlybirdController import WhirlybirdController
 
 
 class WhirlybirdDynamics(object):
 
-  def __init__(self):
+  def __init__(self, controller=None):
+
+    if controller:
+      self.controller = controller
+    else:
+      self.controller = WhirlybirdController()
 
     self.state = np.matrix([
       [P.phi0],
@@ -17,6 +23,7 @@ class WhirlybirdDynamics(object):
 
 
   def propogateDynamics(self, u):
+    'u: reference inputs (for now just h_ref)'
     k1 = self.Derivatives(self.state, u)
     k2 = self.Derivatives(self.state + P.Ts/2*k1, u)
     k3 = self.Derivatives(self.state + P.Ts/2*k2, u)
@@ -32,7 +39,10 @@ class WhirlybirdDynamics(object):
     phidot= state.item(3)
     thetadot= state.item(4)
     psidot = state.item(5)
-    fl, fr = u
+
+    F = self.controller.getForces(u, (theta, thetadot))[0]
+
+    fl, fr = F/2.0, F/2.0
 
     # get physical parameters from the params file
     g, Jx, Jy, Jz, km = P.g, P.Jx, P.Jy, P.Jz, P.km

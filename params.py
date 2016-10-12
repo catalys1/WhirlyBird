@@ -1,5 +1,5 @@
 
-
+# Physical parameters
 g  = 9.81
 l1 = 0.85
 l2 = 0.3048
@@ -22,5 +22,12 @@ psi0 = 0.0
 phidot0 = 0.0
 thetadot0 = 0.0
 psidot0 = 0.0
+
+# Control parameters
+#kp_th = 2.604
+#kd_th = 3.472
+kp_th = 86.8056
+kd_th = 12.2743
+
 
 Ts = 0.01
