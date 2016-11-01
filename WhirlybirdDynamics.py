@@ -40,9 +40,10 @@ class WhirlybirdDynamics(object):
     thetadot= state.item(4)
     psidot = state.item(5)
 
-    F = self.controller.getForces(u, (theta, thetadot))[0]
+    F, tau = self.controller.getForces(u, state)
 
-    fl, fr = F/2.0, F/2.0
+    fr = (P.d*F-tau) / (2.0*P.d)
+    fl = F - fr
 
     # get physical parameters from the params file
     g, Jx, Jy, Jz, km = P.g, P.Jx, P.Jy, P.Jz, P.km
