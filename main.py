@@ -8,7 +8,7 @@ import params as P
 import argparse
 from WhirlybirdAnimation import WhirlybirdAnimation
 from WhirlybirdDynamics import WhirlybirdDynamics
-from WhirlybirdController import WhirlybirdControllerPID
+from WhirlybirdController import WhirlybirdControllerFullState
 import signalGenerator as sigGen
 
 parser = argparse.ArgumentParser()
@@ -17,7 +17,7 @@ args = parser.parse_args()
 
 pitch_r, yaw_r = [float(x) for x in args.inputs]
 
-controller = WhirlybirdControllerPID()
+controller = WhirlybirdControllerFullState()
 dynamics = WhirlybirdDynamics(controller)
 animator = WhirlybirdAnimation()
 

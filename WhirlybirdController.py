@@ -107,5 +107,64 @@ class WhirlybirdControllerPID(WhirlybirdControllerPD):
         return self.forces
 
 
+class WhirlybirdControllerFullState(Controller):
+	
+	def __init__(self):
+		super(WhirlybirdControllerFullState, self).__init__()
+
+		self.phidot = 0.0
+		self.thdot = 0.0
+		self.psidot = 0.0
+		self.phi_d1 = P.phi0
+		self.th_d1 = P.theta0
+		self.psi_d1 = P.psi0
+
+		self.a1 = (2*P.tau - P.Ts) / (2*P.tau + P.Ts)
+		self.a2 = 2.0 / (2*P.tau + P.Ts)
+		self.Ts_half = P.Ts / 2.0
+
+		self.PWM_MAX = 0.6
+
+	def getForces(self, ref_input, states):
+		th_r, psi_r = ref_input
+		phi = states.item(0)
+		theta = states.item(1)
+		psi = states.item(2)
+
+		
+		self.phidot = self.a1*self.phidot + self.a2*(phi - self.phi_d1)
+		self.phi_d1 = phi
+
+		self.thdot = self.a1*self.thdot + self.a2*(theta - self.th_d1)
+		self.th_d1 = theta
+
+		self.psidot = self.a1*self.psidot + self.a2*(psi - self.psi_d1)
+		self.psi_d1 = psi
+
+		s_lon = np.matrix([
+			[theta - P.theta0],
+			[self.thdot]
+		])
+
+		s_lat = np.matrix([
+			[phi - P.phi0],
+			[psi - P.psi0],
+			[self.phidot],
+			[self.psidot]
+		])
+
+		F = P.Feq - P.K_lon*s_lon + P.kr_lon*(th_r-P.theta0)
+		F = F.item(0)
+
+		tau = -P.K_lat*s_lat + P.kr_lat*(psi_r-P.psi0)
+		tau = tau.item(0)
+
+		x = 1.0/(2.0*P.km)
+		ul = self.saturate(x * (F + tau/P.d), self.PWM_MAX)
+		ur = self.saturate(x * (F - tau/P.d), self.PWM_MAX)
+
+		self.forces = [ul, ur]
+		return self.forces
+
 
 
