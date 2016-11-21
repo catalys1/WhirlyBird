@@ -141,6 +141,9 @@ class WhirlybirdControllerFullState(Controller):
 		self.psidot = self.a1*self.psidot + self.a2*(psi - self.psi_d1)
 		self.psi_d1 = psi
 
+		#print self.phidot - states.item(3)
+		#print self.psidot - states.item(5)
+
 		s_lon = np.matrix([
 			[theta - P.theta0],
 			[self.thdot]

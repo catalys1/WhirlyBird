@@ -57,7 +57,7 @@ wn_phi = 2.2 / tr_phi
 kp_phi = wn_phi**2 * Jx
 kd_phi = 2*zeta_lat*wn_phi*Jx
 
-tr_psi = tr_phi
+tr_psi = 10*tr_phi
 wn_psi = 2.2 / tr_psi
 b_psi = l1*Feq/(m1*l1**2+m2*l2**2+Jz)
 
@@ -111,14 +111,7 @@ Cr_lat = C_lat[1,:]
 cl_poles_lat = list(np.roots([1,2*zeta_phi*wn_phi,wn_phi**2])) + \
 		list(np.roots([1,2*zeta_psi*wn_psi,wn_psi**2]))
 K_lat = ctrl.acker(A_lat, B_lat, cl_poles_lat)
-print A_lat
-print B_lat
-print K_lat
-print B_lat*K_lat
-print A_lat - B_lat*K_lat
-print np.linalg.inv(A_lat - B_lat*K_lat)
-print np.linalg.inv(A_lat - B_lat*K_lat)*B_lat
-print C_lat * (np.linalg.inv(A_lat - B_lat*K_lat)*B_lat)
+#K_lat = np.matrix([[kp_phi, kd_phi, kp_psi, kd_psi]])
 kr_lat = -1.0 / (Cr_lat * (np.linalg.inv(A_lat - B_lat*K_lat) * B_lat)).item(0)
 
 
