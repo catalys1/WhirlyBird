@@ -145,18 +145,18 @@ class WhirlybirdControllerFullState(Controller):
 		#print self.psidot - states.item(5)
 
 		s_lon = np.matrix([
-			[theta - P.theta0],
+			[theta],
 			[self.thdot]
 		])
 
 		s_lat = np.matrix([
-			[phi - P.phi0],
-			[psi - P.psi0],
+			[phi],
+			[psi],
 			[self.phidot],
 			[self.psidot]
 		])
 
-		F = P.Feq - P.K_lon*s_lon + P.kr_lon*(th_r-P.theta0)
+		F = P.Feq*np.cos(theta) - P.K_lon*s_lon + P.kr_lon*(th_r-P.theta0)
 		F = F.item(0)
 
 		tau = -P.K_lat*s_lat + P.kr_lat*(psi_r-P.psi0)

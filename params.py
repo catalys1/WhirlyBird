@@ -10,7 +10,7 @@ g  = 9.81
 l1 = 0.85
 l2 = 0.3048
 m1 = 0.891
-m2 = 1
+m2 = 1.0
 d  = 0.178
 h  = 0.65
 r  = 0.12
@@ -45,7 +45,7 @@ zeta_lat = 0.75
 
 # Longitudinal (theta)
 b_th = l1/(m1*l1**2+m2*l2**2+Jy)
-tr_th = 1.5
+tr_th = 1.4
 wn_th = 2.2 / tr_th
 kp_th = wn_th**2/b_th
 kd_th = 2*zeta_lon*wn_th/b_th
@@ -70,15 +70,13 @@ ki_psi = 0.015
 # FULL STATE 
 # -------------------------------------------------------- #
 # Longitudinal
-num = (m1*l1 - m2*l2)*g*np.sin(theta0)
-denom = (m1*l1**2 + m2*l2**2 + Jy)
 A_lon = np.matrix([
 	[0.0, 1.0],
-	[num/denom, 0.0] 
+	[0.0, 0.0] 
 ])
 B_lon = np.matrix([
 	[0.0],
-	[l1/denom]
+	[b_th]
 ])
 C_lon = np.matrix([
 	[1.0, 0.0]
@@ -88,8 +86,6 @@ K_lon = ctrl.acker(A_lon, B_lon, cl_poles_lon)
 kr_lon = -1.0 / (C_lon * (np.linalg.inv(A_lon - B_lon*K_lon) * B_lon)).item(0)
 
 # Lateral
-zeta_phi = 0.75
-zeta_psi = 0.707
 c = l1*Feq / (m1*l1**2 + m2*l2**2 + Jz)
 A_lat = np.matrix([
 	[0.0, 0.0, 1.0, 0.0],
@@ -108,10 +104,17 @@ C_lat = np.matrix([
 	[0,1,0,0]
 ])
 Cr_lat = C_lat[1,:]
-cl_poles_lat = list(np.roots([1,2*zeta_phi*wn_phi,wn_phi**2])) + \
-		list(np.roots([1,2*zeta_psi*wn_psi,wn_psi**2]))
+
+zeta_phi = 0.707
+zeta_psi = 0.8507
+tr_phi = 0.35
+tr_psi = 4*tr_phi
+wn_phi = 2.2/tr_phi
+wn_psi = 2.2/tr_psi
+cl_poles_lat = list(np.roots([1,2*zeta_psi*wn_psi,wn_psi**2])) + \
+               list(np.roots([1,2*zeta_phi*wn_phi,wn_phi**2]))
+		
 K_lat = ctrl.acker(A_lat, B_lat, cl_poles_lat)
-#K_lat = np.matrix([[kp_phi, kd_phi, kp_psi, kd_psi]])
 kr_lat = -1.0 / (Cr_lat * (np.linalg.inv(A_lat - B_lat*K_lat) * B_lat)).item(0)
 
 

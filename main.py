@@ -2,8 +2,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatch
-import matplotlib.animation as ani
 import params as P
 import argparse
 from WhirlybirdAnimation import WhirlybirdAnimation
@@ -12,22 +10,18 @@ from WhirlybirdController import *
 import signalGenerator as sigGen
 
 parser = argparse.ArgumentParser()
-parser.add_argument('inputs', nargs=2, help='Reference longitude and lateral')
+parser.add_argument('-t', type=float)
 args = parser.parse_args()
-
-pitch_r, yaw_r = [float(x) for x in args.inputs]
 
 #controller = WhirlybirdControllerPID()
 controller = WhirlybirdControllerFullState()
 dynamics = WhirlybirdDynamics(controller)
 animator = WhirlybirdAnimation()
 
-t_start = 0.0
 t_end = 20.0
+if args.t: t_end = args.t
 t_elapse = 0.1
 t_pause = 0.01
-
-t = t_start
 
 hz = 0.05
 pitch_r = 15 * np.pi/180.0
@@ -63,27 +57,27 @@ for _ in xrange(int(t_end/t_elapse)):
 
 dynamics.Outputs()
 
-t = np.linspace(t_start, t_end, len(force_left))
+t = np.linspace(0, t_end, len(force_left))
 plt.figure()
 plt.subplot(311)
 plt.plot(t, force_left, 'b-')
 plt.plot(t, force_right, 'r-')
 plt.title('Left and right input forces')
-plt.xticks(np.arange(t_start, t_end+1, 1.0))
+plt.xticks(np.arange(0, t_end+1, 1.0))
 plt.grid()
 plt.ylabel('PWM')
 plt.subplot(312)
 plt.plot(t, pitch_ref, 'b--')
 plt.plot(t, pitch, 'r-')
 plt.title('Pitch angle response')
-plt.xticks(np.arange(t_start, t_end+1, 1.0))
+plt.xticks(np.arange(0, t_end+1, 1.0))
 plt.grid()
 plt.ylabel('Radians')
 plt.subplot(313)
 plt.plot(t, yaw_ref, 'b--')
 plt.plot(t, yaw, 'r-')
 plt.title('Yaw angle response')
-plt.xticks(np.arange(t_start, t_end+1, 1.0))
+plt.xticks(np.arange(0, t_end+1, 1.0))
 plt.grid()
 plt.ylabel('Radians')
 plt.xlabel('Time')
