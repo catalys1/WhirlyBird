@@ -119,6 +119,11 @@ class WhirlybirdControllerFullState(Controller):
 		self.th_d1 = P.theta0
 		self.psi_d1 = P.psi0
 
+		self.integrator_lon = 0.0
+		self.err_lon_d1 = 0.0
+		self.integrator_lat = 0.0
+		self.err_lat_d1 = 0.0
+
 		self.a1 = (2*P.tau - P.Ts) / (2*P.tau + P.Ts)
 		self.a2 = 2.0 / (2*P.tau + P.Ts)
 		self.Ts_half = P.Ts / 2.0
@@ -141,8 +146,13 @@ class WhirlybirdControllerFullState(Controller):
 		self.psidot = self.a1*self.psidot + self.a2*(psi - self.psi_d1)
 		self.psi_d1 = psi
 
-		#print self.phidot - states.item(3)
-		#print self.psidot - states.item(5)
+		err = th_r - theta
+		self.integrator_lon += self.Ts_half*(err + self.err_lon_d1)
+		self.err_lon_d1 = err
+
+		err = psi_r - psi
+		self.integrator_lat += self.Ts_half*(err + self.err_lat_d1)
+		self.err_lat_d1 = err
 
 		s_lon = np.matrix([
 			[theta],
@@ -156,10 +166,10 @@ class WhirlybirdControllerFullState(Controller):
 			[self.psidot]
 		])
 
-		F = P.Feq*np.cos(theta) - P.K_lon*s_lon + P.kr_lon*(th_r-P.theta0)
+		F = P.Feq*np.cos(theta) - P.K_lon*s_lon - P.ki_lon*self.integrator_lon
 		F = F.item(0)
 
-		tau = -P.K_lat*s_lat + P.kr_lat*(psi_r-P.psi0)
+		tau = -P.K_lat*s_lat - P.ki_lat*self.integrator_lat
 		tau = tau.item(0)
 
 		x = 1.0/(2.0*P.km)

@@ -81,9 +81,19 @@ B_lon = np.matrix([
 C_lon = np.matrix([
 	[1.0, 0.0]
 ])
-cl_poles_lon = list(np.roots([1,2*zeta_lon*wn_th,wn_th**2]))
-K_lon = ctrl.acker(A_lon, B_lon, cl_poles_lon)
-kr_lon = -1.0 / (C_lon * (np.linalg.inv(A_lon - B_lon*K_lon) * B_lon)).item(0)
+
+A1_lon = np.concatenate((
+	np.concatenate((A_lon, np.zeros((2,1))), 1),
+	np.concatenate((-C_lon, np.zeros((1,1))), 1)), 0)
+B1_lon = np.concatenate((B_lon, np.zeros((1,1))))
+
+i_pole_lon = -1*wn_th
+cl_poles_lon = list(np.roots([1,2*zeta_lon*wn_th,wn_th**2])) + [i_pole_lon]
+
+K1_lon = ctrl.acker(A1_lon, B1_lon, cl_poles_lon)
+K_lon = K1_lon[0,:2]
+ki_lon = K1_lon[0,2]
+#kr_lon = -1.0 / (C_lon * (np.linalg.inv(A_lon - B_lon*K_lon) * B_lon)).item(0)
 
 # Lateral
 c = l1*Feq / (m1*l1**2 + m2*l2**2 + Jz)
@@ -105,17 +115,26 @@ C_lat = np.matrix([
 ])
 Cr_lat = C_lat[1,:]
 
+A1_lat = np.concatenate((A_lat,-Cr_lat), 0)
+A1_lat = np.concatenate((A1_lat, np.zeros((A1_lat.shape[0],Cr_lat.shape[0]))), 1)
+B1_lat = np.concatenate(( B_lat, np.zeros((Cr_lat.shape[0], B_lat.shape[1]))), 0)
+
 zeta_phi = 0.707
 zeta_psi = 0.8507
 tr_phi = 0.35
 tr_psi = 4*tr_phi
 wn_phi = 2.2/tr_phi
 wn_psi = 2.2/tr_psi
+
+i_pole_lat = -1*wn_phi
 cl_poles_lat = list(np.roots([1,2*zeta_psi*wn_psi,wn_psi**2])) + \
-               list(np.roots([1,2*zeta_phi*wn_phi,wn_phi**2]))
+               list(np.roots([1,2*zeta_phi*wn_phi,wn_phi**2])) + \
+               [i_pole_lat]
 		
-K_lat = ctrl.acker(A_lat, B_lat, cl_poles_lat)
-kr_lat = -1.0 / (Cr_lat * (np.linalg.inv(A_lat - B_lat*K_lat) * B_lat)).item(0)
+K1_lat = ctrl.acker(A1_lat, B1_lat, cl_poles_lat)
+K_lat = K1_lat[0,:4]
+ki_lat = K1_lat[0,4]
+# kr_lat = -1.0 / (Cr_lat * (np.linalg.inv(A_lat - B_lat*K_lat) * B_lat)).item(0)
 
 
 if __name__ == '__main__':
@@ -126,8 +145,8 @@ if __name__ == '__main__':
 	print '-- FULL STATE --'
 	print '  theta poles = {:.3f}, {:.3f}'.format(*cl_poles_lon)
 	print '  K_lon = %s' % K_lon
-	print '  kr_lon = %s' % kr_lon
+	print '  ki_lon = %s' % ki_lon
 	print '  phi poles = {:.3f}, {:.3f}'.format(*cl_poles_lat[:2])
 	print '  psi poles = {:.3f}, {:.3f}'.format(*cl_poles_lat[2:])
 	print '  K_lat = %s' % K_lat
-	print '  kr_lat = %s' % kr_lat
+	print '  ki_lat = %s' % ki_lat
