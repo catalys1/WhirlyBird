@@ -180,4 +180,71 @@ class WhirlybirdControllerFullState(Controller):
 		return self.forces
 
 
+class WhirlybirdControllerObserver(Controller):
+	
+	def __init__(self):
+		super(WhirlybirdControllerObserver, self).__init__()
+		self.xeq_lon = np.matrix([
+			[P.theta0],
+			[P.thetadot0]
+		])
+		self.xhat_lon = self.xeq_lon.copy()
+		self.xeq_lat = np.matrix([
+			[P.phi0],
+			[P.psi0],
+			[P.phidot0],
+			[P.psidot0]
+		])
+		self.xhat_lat = self.xeq_lat.copy()
 
+		self.F_d1 = P.Feq
+		self.tau_d1 = 0.0
+		self.integrator_lon = 0.0
+		self.integrator_lat = 0.0
+		self.err_d1_lon = 0.0
+		self.err_d1_lat = 0.0
+
+		self.PWM_MAX = 0.6
+
+	def getForces(self, ref_input, states):
+		th_r, psi_r = ref_input
+		phi = states.item(0)
+		th = states.item(1)
+		psi = states.item(2)
+
+		N = 10
+		for i in xrange(N):
+			Ts = P.Ts/N
+			self.xhat_lon += Ts*(P.A_lon*(self.xhat_lon-self.xeq_lon)
+			               + P.B_lon*(self.F_d1 - P.Feq)
+			               + P.L_lon*([th] - P.C_lon*self.xhat_lon))
+
+			self.xhat_lat += Ts*(P.A_lat*(self.xhat_lat-self.xeq_lat)
+		                 + P.B_lat*self.tau_d1
+			               + P.L_lat*([[phi],[psi]] - P.C_lat*self.xhat_lat))
+
+		err = th_r - self.xhat_lon.item(0)
+		self.integrator_lon += P.Ts/2.0 * (err+self.err_d1_lon)
+		self.err_d1_lon = err
+
+		err = psi_r - self.xhat_lat.item(1)
+		self.integrator_lat += P.Ts/2.0 * (err+self.err_d1_lat)
+		self.err_d1_lat = err
+		
+		F = P.Feq*np.cos(th)-P.K_lon*(self.xhat_lon-self.xeq_lon)-P.ki_lon*self.integrator_lon
+		F = F.item(0)
+		self.F_d1 = F
+
+		tau = -P.K_lat*(self.xhat_lat-self.xeq_lat)-P.ki_lat*self.integrator_lat
+		tau = tau.item(0)
+		self.tau_d1 = tau
+
+		x = 1.0/(2.0*P.km)
+		ul = self.saturate(x * (F + tau/P.d), self.PWM_MAX)
+		ur = self.saturate(x * (F - tau/P.d), self.PWM_MAX)
+
+		self.forces = [ul, ur]
+		return self.forces
+
+	def getObservedStates(self):
+		return self.xhat_lon.flatten().tolist()[0] + self.xhat_lat.flatten().tolist()[0]

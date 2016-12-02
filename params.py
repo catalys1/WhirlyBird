@@ -1,5 +1,6 @@
 import numpy as np
 import control as ctrl
+from scipy.signal import place_poles as place
 
 # -------------------------------------------------------- #
 # WHIRLYBIRD PARAMS
@@ -136,6 +137,20 @@ K_lat = K1_lat[0,:4]
 ki_lat = K1_lat[0,4]
 # kr_lat = -1.0 / (Cr_lat * (np.linalg.inv(A_lat - B_lat*K_lat) * B_lat)).item(0)
 
+# -------------------------------------------------------- #
+# OBSERVER 
+# -------------------------------------------------------- #
+zeta_o = 0.707
+wn_oth = 5.0*wn_th
+wn_ophi= 5.0*wn_phi
+wn_opsi= 5.0*wn_psi
+
+obs_poles_lat = list(np.roots([1,2*zeta_o*wn_ophi,wn_ophi**2])) \
+              + list(np.roots([1,2*zeta_o*wn_opsi,wn_opsi**2]))
+L_lat = place(A_lat.T, C_lat.T, obs_poles_lat).gain_matrix.T
+obs_poles_lon = list(np.roots([1,2*zeta_o*wn_oth,wn_oth**2]))
+L_lon = place(A_lon.T, C_lon.T, obs_poles_lon).gain_matrix.T
+
 
 if __name__ == '__main__':
 	print '-- PID --'
@@ -150,3 +165,6 @@ if __name__ == '__main__':
 	print '  psi poles = {:.3f}, {:.3f}'.format(*cl_poles_lat[2:])
 	print '  K_lat = %s' % K_lat
 	print '  ki_lat = %s' % ki_lat
+	print '-- OBSERVER --'
+	print '  L_lat = %s' % L_lat
+	print '  L_lon = %s' % L_lon

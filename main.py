@@ -14,14 +14,14 @@ parser.add_argument('-t', type=float)
 args = parser.parse_args()
 
 #controller = WhirlybirdControllerPID()
-controller = WhirlybirdControllerFullState()
+#controller = WhirlybirdControllerFullState()
+controller = WhirlybirdControllerObserver()
 dynamics = WhirlybirdDynamics(controller)
 animator = WhirlybirdAnimation()
 
 t_end = 20.0
 if args.t: t_end = args.t
 t_elapse = 0.1
-t_pause = 0.01
 
 hz = 0.05
 pitch_r = 15 * np.pi/180.0
@@ -35,6 +35,8 @@ pitch = []
 yaw = []
 force_left = []
 force_right = []
+pitch_obs = []
+yaw_obs = []
 
 plt.figure(animator.fig.number)
 for _ in xrange(int(t_end/t_elapse)):
@@ -55,10 +57,14 @@ for _ in xrange(int(t_end/t_elapse)):
 	force_right.append(forces[1])
 	animator.drawWhirlybird(outputs)
 
+	observed = controller.getObservedStates()
+	pitch_obs.append(observed[0])
+	yaw_obs.append(observed[3])
+
 dynamics.Outputs()
 
 t = np.linspace(0, t_end, len(force_left))
-plt.figure()
+plt.figure(2)
 plt.subplot(311)
 plt.plot(t, force_left, 'b-')
 plt.plot(t, force_right, 'r-')
@@ -84,6 +90,19 @@ plt.xlabel('Time')
 # plt.annotate('Blue: Reference Input', xy=(13,0.27), color='blue')
 # plt.annotate('Red: Yaw angle', xy=(13,0.25), color='red')
 # plt.annotate('Green: Roll angle', xy=(13,0.23), color='green')
+plt.figure(3)
+plt.subplot(311)
+plt.plot(t, pitch, 'r-')
+plt.plot(t, pitch_obs, 'b--')
+plt.grid()
+plt.subplot(312)
+plt.plot(t, yaw, 'r-')
+plt.plot(t, yaw_obs, 'b--')
+plt.grid()
+plt.subplot(313)
+plt.plot(t, np.array(pitch)-np.array(pitch_obs), 'r-')
+plt.plot(t, np.array(yaw)-np.array(yaw_obs), 'b-')
+plt.grid()
 plt.show()
 
 
